@@ -1,0 +1,56 @@
+# Istio Gateway for POC
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: wso2-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "apim.local"
+        - "is.local"
+---
+# VirtualService for APIM
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: apim-vs
+  namespace: apim
+spec:
+  hosts:
+    - "apim.local"
+  gateways:
+    - istio-system/wso2-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: wso2am-service # Adjust based on actual service name
+            port:
+              number: 9443
+---
+# VirtualService for IS
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: is-vs
+  namespace: is
+spec:
+  hosts:
+    - "is.local"
+  gateways:
+    - istio-system/wso2-gateway
+  http:
+    - route:
+        - destination:
+            host: wso2is-service # Adjust based on actual service name
+            port:
+              number: 9443

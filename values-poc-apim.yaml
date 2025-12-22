@@ -1,0 +1,73 @@
+# POC values for WSO2 APIM all-in-one deployment
+# Minimal overrides for Kind cluster POC with MySQL
+# Based on APIM 4.5.0
+
+wso2:
+  apim:
+    version: "4.5.0"
+
+    configurations:
+      gatewayType: "Regular,APK"
+
+      gateway:
+        environments:
+          - name: "Default"
+            type: "hybrid"
+            gatewayType: "APK"
+            displayInApiConsole: true
+            description: "APK Gateway"
+            showAsTokenEndpointUrl: true
+            serviceName: "wso2am-gateway-service"
+            servicePort: 9443
+            wsHostname: "websocket.wso2.com"
+            httpHostname: "default.gw.wso2.com"
+            websubHostname: "websub.wso2.com"
+          - name: "Default_synapse"
+            type: "hybrid"
+            gatewayType: "Regular"
+            provider: "wso2"
+            displayInApiConsole: true
+            description: "Classic Gateway"
+            showAsTokenEndpointUrl: true
+            serviceName: "wso2am-gateway-service"
+            servicePort: 9443
+            wsHostname: "websocket.wso2.com"
+            httpHostname: "gw.wso2.com"
+            websubHostname: "websub.wso2.com"
+
+      databases:
+        type: "mysql"
+        jdbc:
+          driver: "com.mysql.cj.jdbc.Driver"
+        apim_db:
+          url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2AM_DB?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
+          username: "wso2carbon"
+          password: "wso2carbon"
+        shared_db:
+          url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2AM_SHARED_DB?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
+          username: "wso2carbon"
+          password: "wso2carbon"
+
+    keyManager:
+      type: "WSO2-IS"
+      url: "https://wso2-is-service.wso2.svc.cluster.local:9443"
+
+  image:
+    registry: "docker.wso2.com"
+    repository: "wso2am"
+    tag: "4.5.0"
+    pullPolicy: "IfNotPresent"
+
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1000m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    service:
+      type: "ClusterIP"
+    persistence:
+      enabled: false
