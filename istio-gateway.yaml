@@ -17,9 +17,9 @@ spec:
         mode: PASSTHROUGH
       hosts:
         - "apim.local"
-        - "is.local"
+        - "gw.local"
 ---
-# VirtualService for APIM (SNI based routing)
+# VirtualService for APIM Control Plane (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -37,28 +37,28 @@ spec:
             - "apim.local"
       route:
         - destination:
-            host: wso2-apim-am-service
+            host: apim-wso2am-all-in-one-am-service
             port:
               number: 9443
 ---
-# VirtualService for IS (SNI based routing)
+# VirtualService for Gateway (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: is-vs
+  name: gw-vs
   namespace: wso2
 spec:
   hosts:
-    - "is.local"
+    - "gw.local"
   gateways:
     - istio-system/wso2-gateway
   tls:
     - match:
         - port: 443
           sniHosts:
-            - "is.local"
+            - "gw.local"
       route:
         - destination:
-            host: wso2-is
+            host: apim-gw-wso2am-universal-gw-service
             port:
-              number: 9443
+              number: 8243
