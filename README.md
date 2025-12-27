@@ -84,12 +84,14 @@ helm repo update
 helm upgrade --install apim wso2/wso2am-all-in-one \
   --version 4.6.0-1 \
   -n wso2 \
-  -f apim-cp-values.yaml
+  -f apim-cp-values.yaml \
+  --wait --timeout 15m
 
 helm upgrade --install apim-gw wso2/wso2am-universal-gw \
   --version 4.6.0-1 \
   -n wso2 \
-  -f apim-gw-values.yaml
+  -f apim-gw-values.yaml \
+  --wait --timeout 15m
 ```
 
 ## Option 2: Installation with external DB (external MySQL)
@@ -190,7 +192,9 @@ This repo vendors the chart under `apk-helm-1.3.0-1/apk-helm`.
 ```bash
 helm upgrade --install apk apk-helm-1.3.0-1/apk-helm \
   -n apk --create-namespace \
-  -f apk-values.local.yaml 
+  -f apk-values.local.yaml \
+  --skip-crds \
+  --wait --timeout 10m
 ```
 
 ### 3) Install APIM → APK Agent (CP→DP)
@@ -202,7 +206,8 @@ helm repo update
 helm upgrade --install apim-apk-agent wso2apkagent/apim-apk-agent \
   --version 1.3.0 \
   -n apk \
-  -f apim-apk-agent-values.local.yaml
+  -f apim-apk-agent-values.local.yaml \
+  --wait --timeout 10m
 ```
 
 ### 4) Verify

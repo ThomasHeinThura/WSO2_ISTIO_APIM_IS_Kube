@@ -40,7 +40,7 @@ wso2:
     # APK Gateway Listener
     # ========================================
     listener:
-      hostname: "apk.local"
+      hostname: "api.local"
       port: 9095
 
     # ========================================
@@ -73,7 +73,10 @@ wso2:
       # Gateway Configuration
       gateway:
         listener:
-          hostname: "apk.local"
+          hostname: "api.local"
+          dns:
+            - "api.local"
+            - "*.api.local"
         service: {}
 
       # Config Deployer
