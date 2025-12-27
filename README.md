@@ -1,16 +1,22 @@
-# WSO2 APIM 4.6.0 (Control Plane + Universal Gateway) on Kind + Istio
+# WSO2 APIM 4.6.0 + WSO2 APK 1.3.0 on Kind + Istio
 
-This folder provides a repeatable setup for APIM 4.6.0 **Control Plane** + **Universal Gateway** on a local Kind cluster with Istio ingress.
+This repo provides a repeatable local setup for:
 
-This README supports exactly two installation paths:
+- WSO2 APIM 4.6.0 Control Plane (all-in-one)
+- WSO2 Universal Gateway (optional)
+- WSO2 APK 1.3.0-1
+- APIM → APK Agent (CP→DP sync)
 
-1) **Installation with Kubernetes DB** (MySQL runs inside the cluster)
-2) **Installation with external DB** (you bring your own MySQL)
+Hostnames used by this repo:
+
+- `apim.local` (APIM Control Plane via Istio)
+- `gw.local` (Universal Gateway via Istio)
+- `api.local` (APK data-plane hostname used by APIM environment label `Default_apk`)
 
 ## Prerequisites
 
 - Docker
-- Kind
+- kind
 - kubectl
 - Helm
 - istioctl
@@ -20,7 +26,7 @@ This README supports exactly two installation paths:
 ### 1) Create Kind cluster
 
 ```bash
-kind create cluster --name wso2-cluster --config WSO2_ISTIO_APIM_IS_Kube/Kubernetes_cluster/kind.yaml
+kind create cluster --name wso2-cluster --config Kubernetes_cluster/kind.yaml
 ```
 
 ### 2) Install Istio (includes ingress gateway)
@@ -40,19 +46,19 @@ kubectl label ns wso2 istio-injection=enabled --overwrite
 
 ```bash
 # Generate *.local certificates
-./WSO2_ISTIO_APIM_IS_Kube/scripts/generate-local-certificates.sh
+./scripts/generate-local-certificates.sh
 
 # Create the keystore secret
 kubectl create secret generic apim-keystore-secret \
-  --from-file=wso2carbon.jks=WSO2_ISTIO_APIM_IS_Kube/scripts/wso2carbon.jks \
-  --from-file=client-truststore.jks=WSO2_ISTIO_APIM_IS_Kube/scripts/client-truststore.jks \
+  --from-file=wso2carbon.jks=./certificates/wso2carbon.jks \
+  --from-file=client-truststore.jks=./certificates/client-truststore.jks \
   -n wso2
 ```
 
 ### 5) Build APIM images (MySQL JDBC included) and load into Kind
 
 ```bash
-LOAD_TO_KIND=true ./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
+LOAD_TO_KIND=true ./scripts/build-apim-images.sh
 ```
 
 ## Option 1: Installation with Kubernetes DB (in-cluster MySQL)
@@ -60,7 +66,7 @@ LOAD_TO_KIND=true ./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
 ### 1) Deploy MySQL to the cluster
 
 ```bash
-./WSO2_ISTIO_APIM_IS_Kube/scripts/deploy-mysql.sh
+./scripts/deploy-mysql.sh
 ```
 
 Wait for MySQL:
@@ -75,33 +81,33 @@ kubectl get pods -n wso2 -l app=mysql -w
 helm repo add wso2 https://helm.wso2.com
 helm repo update
 
-helm install apim wso2/wso2am-all-in-one \
+helm upgrade --install apim wso2/wso2am-all-in-one \
   --version 4.6.0-1 \
   -n wso2 \
-  -f WSO2_ISTIO_APIM_IS_Kube/apim-cp-values.yaml
+  -f apim-cp-values.yaml
 
-helm install apim-gw wso2/wso2am-universal-gw \
+helm upgrade --install apim-gw wso2/wso2am-universal-gw \
   --version 4.6.0-1 \
   -n wso2 \
-  -f WSO2_ISTIO_APIM_IS_Kube/apim-gw-values.yaml
+  -f apim-gw-values.yaml
 ```
 
 ## Option 2: Installation with external DB (external MySQL)
 
 ### 1) Initialize schemas on the external DB
 
-This uses the SQL in `WSO2_ISTIO_APIM_IS_Kube/mysql-scripts`.
+This uses the SQL in `mysql-scripts`.
 
 ```bash
 DB_PASSWORD='<mysql-root-password>' \
-  ./WSO2_ISTIO_APIM_IS_Kube/scripts/init-external-mysql.sh
+  ./scripts/init-external-mysql.sh
 ```
 
 ### 2) Ensure values files point to the external DB
 
 - Update the DB host/port/user/password in:
-  - `WSO2_ISTIO_APIM_IS_Kube/apim-cp-values.yaml`
-  - `WSO2_ISTIO_APIM_IS_Kube/apim-gw-values.yaml`
+  - `apim-cp-values.yaml`
+  - `apim-gw-values.yaml`
 
 Important: if a JDBC URL is rendered into XML, keep it XML-safe (escape `&` as `&amp;`).
 
@@ -115,10 +121,10 @@ MetalLB is required for stable external IPs on Kind:
 
 ```bash
 # Install MetalLB
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.3/config/manifests/metallb-native.yaml
 
 # Create IP pool (adjust for your network)
-kubectl apply -f WSO2_ISTIO_APIM_IS_Kube/metal-ippool.yaml
+kubectl apply -f metal-ippool.yaml
 
 # Wait for external IP assignment
 kubectl get svc -n istio-system istio-ingressgateway -w
@@ -129,7 +135,7 @@ kubectl get svc -n istio-system istio-ingressgateway -w
 ### 1) Apply Istio Gateway + VirtualServices
 
 ```bash
-kubectl apply -f WSO2_ISTIO_APIM_IS_Kube/istio-gateway.yaml
+kubectl apply -f istio-gateway.yaml
 ```
 
 Verify:
@@ -168,4 +174,43 @@ kubectl get pods -n istio-system
 
 
 
-<pre class="prism-code language-bash"><div class="token-line"><span class="token plain">kubectl apply </span><span class="token parameter variable">-f</span><span class="token plain"> https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.yaml</span></div></pre>
+
+## APK (WSO2 API Platform for Kubernetes)
+
+### 1) APIM gateway environment label
+
+This repo expects APIM CP to have an APK gateway environment label `Default_apk` and uses `api.local:9095` as its hostname.
+
+If APIM is already installed, re-run the APIM Helm command above (it reads `apim-cp-values.yaml`).
+
+### 2) Install APK 1.3.0-1
+
+This repo vendors the chart under `apk-helm-1.3.0-1/apk-helm`.
+
+```bash
+helm upgrade --install apk apk-helm-1.3.0-1/apk-helm \
+  -n apk --create-namespace \
+  -f apk-values.local.yaml 
+```
+
+### 3) Install APIM → APK Agent (CP→DP)
+
+```bash
+helm repo add wso2apkagent https://github.com/wso2/product-apim-tooling/releases/download/1.3.0
+helm repo update
+
+helm upgrade --install apim-apk-agent wso2apkagent/apim-apk-agent \
+  --version 1.3.0 \
+  -n apk \
+  -f apim-apk-agent-values.local.yaml
+```
+
+### 4) Verify
+
+```bash
+helm list -A
+kubectl get pods -n apk
+kubectl logs -n apk deploy/apim-apk-agent --tail=50
+```
+
+

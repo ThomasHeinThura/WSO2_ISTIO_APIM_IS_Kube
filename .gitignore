@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Env files / secrets
+.env
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.jks
+*.srl
+
+# Downloads / archives
+*.zip
+*.tar
+*.tar.gz
+
+# Local extracted product packs (large)
+Reference/wso2am-*/
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Go
+bin/
+
+# Java/Gradle
+.gradle/
+**/build/
+**/.classpath
+**/.project
+**/.settings/
+
+# Python
+__pycache__/
+*.pyc
+
+# Helm charts packaging
+*.tgz
+
+# Kind / Kubernetes local
+*.kubeconfig

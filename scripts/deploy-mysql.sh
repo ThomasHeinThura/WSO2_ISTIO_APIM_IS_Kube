@@ -8,8 +8,8 @@ echo "Deploying MySQL..."
 # and can exceed the 256KB annotation limit when SQL scripts grow.
 kubectl delete configmap mysql-init-scripts -n wso2 --ignore-not-found
 kubectl create configmap mysql-init-scripts \
-  --from-file=../mysql-scripts \
+  --from-file=mysql-scripts \
   -n wso2
 
 # Apply MySQL Deployment and Service
-kubectl apply -f ../mysql.yaml -n wso2
+kubectl apply -f mysql.yaml -n wso2
