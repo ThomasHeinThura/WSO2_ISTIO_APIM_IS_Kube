@@ -1,5 +1,3 @@
-# Istio Gateway for POC
-# Use TLS PASSTHROUGH so WSO2 services terminate TLS themselves.
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
@@ -11,15 +9,23 @@ spec:
   servers:
     - port:
         number: 443
-        name: tls
-        protocol: TLS
+        name: https-apim
+        protocol: HTTPS
       tls:
-        mode: PASSTHROUGH
+        mode: SIMPLE
+        credentialName: wso2-ingress-cert
       hosts:
         - "apim.local"
+    - port:
+        number: 443
+        name: https-gw
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: wso2-ingress-cert
+      hosts:
         - "gw.local"
 ---
-# VirtualService for APIM Control Plane (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -30,18 +36,16 @@ spec:
     - "apim.local"
   gateways:
     - istio-system/wso2-gateway
-  tls:
+  http:
     - match:
-        - port: 443
-          sniHosts:
-            - "apim.local"
+        - uri:
+            prefix: /
       route:
         - destination:
             host: apim-wso2am-all-in-one-am-service
             port:
               number: 9443
 ---
-# VirtualService for Gateway (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -52,13 +56,38 @@ spec:
     - "gw.local"
   gateways:
     - istio-system/wso2-gateway
-  tls:
+  http:
     - match:
-        - port: 443
-          sniHosts:
-            - "gw.local"
+        - uri:
+            prefix: /
       route:
         - destination:
             host: apim-gw-wso2am-universal-gw-service
             port:
               number: 8243
+---
+# DestinationRule for APIM - Enable TLS to backend with self-signed cert support
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: apim-dr
+  namespace: wso2
+spec:
+  host: apim-wso2am-all-in-one-am-service
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+      insecureSkipVerify: true # Required for self-signed certificates
+---
+# DestinationRule for Gateway - Enable TLS to backend with self-signed cert support
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: gw-dr
+  namespace: wso2
+spec:
+  host: apim-gw-wso2am-universal-gw-service
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+      insecureSkipVerify: true # Required for self-signed certificates
