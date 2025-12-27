@@ -231,7 +231,7 @@ wso2:
             serviceName: "apim-gw-wso2am-gateway-service"
             servicePort: 9443
             wsHostname: "websocket.local"
-            httpHostname: "default.gw.local:9095"
+            httpHostname: "api.local:9095"
             websubHostname: "websub.local"
 
       syncRuntimeArtifacts:
