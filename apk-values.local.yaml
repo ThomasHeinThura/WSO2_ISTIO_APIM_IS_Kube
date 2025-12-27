@@ -1,0 +1,47 @@
+wso2:
+  apk:
+    listener:
+      hostname: "api.local"
+      port: 9095
+
+    idp:
+      issuer: "https://idp.local/token"
+
+    # APK Control Plane -> APIM APK Agent (in the `apk` namespace)
+    cp:
+      enabledSubscription: true
+      host: "apim-apk-agent-service.apk.svc.cluster.local"
+      skipSSLVerification: true
+
+    # Data plane hostname exposed by the K8s Gateway
+    dp:
+      enabled: true
+      gateway:
+        listener:
+          hostname: "default.gw.local"
+
+    gatewayRuntime:
+      enforcer:
+        configs:
+          apiKey:
+            enabled: true
+            # Point API key validation to APIM CP (you already expose it as apim.local)
+            issuer: "https://apim.local/oauth2/token"
+
+idp:
+  enabled: true
+  listener:
+    hostname: "idp.local"
+
+  idpds:
+    configs:
+      issuer: "https://idp.local/token"
+      hostname: "idp.local"
+      loginPageURl: "https://idp.local:9095/authenticationEndpoint/login"
+      loginErrorPageUrl: "https://idp.local:9095/authenticationEndpoint/error"
+      loginCallBackURl: "https://idp.local:9095/authenticationEndpoint/login-callback"
+
+  idpui:
+    configs:
+      idpLoginUrl: "https://idp.local:9095/commonauth/login"
+      idpAuthCallBackUrl: "https://idp.local:9095/oauth2/auth-callback"

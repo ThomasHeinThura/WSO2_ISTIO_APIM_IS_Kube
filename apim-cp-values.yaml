@@ -12,121 +12,15 @@
 aws:
   # -- If AWS is used as the cloud provider
   enabled: false
-  efs:
-    # -- EFS capacity
-    capacity: ""
-    # -- EFS directory permissions
-    directoryPerms: "0777"
-    # -- EFS file system ID for mounting the persistent volume
-    fileSystemId: ""
-    # -- EFS Access Points for static provisioning
-    accessPoints:
-      carbonDb: ""
-      solr: ""
-  # -- AWS region
-  region: ""
-  secretsManager:
-    # -- AWS Secrets Manager secret provider class name
-    secretProviderClass: "wso2am-am-secret-provider-class"
-    secretIdentifiers:
-      # -- Internal keystore password identifier in secrets manager
-      internalKeystorePassword:
-        # -- AWS Secrets Manager secret name
-        secretName: ""
-        # -- AWS Secrets Manager secret key
-        secretKey: ""
-  # Name of Kubernetes service account
-  serviceAccountName: ""
 
 azure:
   # -- If Azure is used as the cloud provider
   enabled: false
-  keyVault:
-    # -- Azure Key vault used for credential management
-    name: ""
-    # -- Azure Key vault secret provider class name
-    secretProviderClass: "wso2am-secret-provider-class"
-    secretIdentifiers:
-      # -- Internal keystore password identifier in keyvault
-      internalKeystorePassword: ""
-      # -- Internal keystore key password identifier in keyvault
-      internalKeystoreKeyPassword: ""
-    activeDirectory:
-      # -- Service Principal created for transacting with the target Azure Key Vault
-      # For advanced details refer to official documentation (https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/master/docs/service-principal-mode.md)
-      servicePrincipal:
-        # -- Application ID of the service principal used in secret-store-csi
-        appId: ""
-        # -- Client secret name of the service principal used in secret-store-csi
-        clientSecretName: ""
-        # -- Credentials secret name of the service principal used as nodePublisherRef
-        credentialsSecretName: ""
-      # -- Azure Active Directory tenant ID of the target Key Vault
-      tenantId: ""
-    resourceManager:
-      # -- Subscription ID of the target Azure Key Vault
-      subscriptionId: ""
-      # -- Name of the Azure Resource Group to which the target Azure Key Vault belongs
-      resourceGroup: ""
-  serviceAccount: "wso2am-all-in-one-svc-account"
-  persistence:
-    # Needed for persisting indexing related data
-    # -- Persistent volume capacity
-    capacity: ""
-    # -- Persistent volume storage class
-    storageClass: ""
-    # -- Azure file secret name
-    secretName: ""
-    # -- Azure fileshare name
-    fileShare: ""
 
 # Google Cloud Platform (GCP) integration status
 gcp:
   # -- If GCP is used as the cloud provider
   enabled: false
-  # -- File Store configuration parameters
-  fs:
-    # -- Storage capacity of the file system (in GB or other appropriate units)
-    capacity: ""
-    # -- FileStore configuration for specific services
-    fileshares:
-      # -- FileShare configs for CarbonDB persistent storage
-      carbonDB:
-        # -- FileStore of the CarbonDB persistent storage
-        fileStoreName: ""
-        # -- FileShare of the CarbonDB persistent storage
-        fileShareName: ""
-        # -- IP of the CarbonDB persistent storage
-        ip: ""
-      # -- FileShare configs for Solr persistent storage
-      solr:
-        # -- FileStore of the Solr persistent storage
-        fileStoreName: ""
-        # -- FileShare of the Solr persistent storage
-        fileShareName: ""
-        # -- IP of the Solr persistent storage
-        ip: ""
-    # -- Tier of the FileStore
-    tier: ""
-    # -- Network of the FileStore
-    network: ""
-
-    # -- Region of the FileStore
-    location: ""
-
-  # -- Secrets Manager configuration parameters
-  secretsManager:
-    # -- Project ID
-    projectId: ""
-    # -- Secret provider class
-    secretProviderClass: ""
-    secret:
-      # -- Name of the secret
-      secretName: ""
-      # -- Version of the secret
-      secretVersion: ""
-  # -- Service Account with access to read secrets
-  serviceAccountName: ""
 
 kubernetes:
   # -- Ingress class to be used for the ingress resource
@@ -326,10 +220,24 @@ wso2:
             httpHostname: "gw.local"
             websubHostname: "websub.local"
 
+          - name: "Default_apk"
+            type: "hybrid"
+            gatewayType: "APK"
+            provider: "wso2"
+            visibility:
+            displayInApiConsole: true
+            description: "This is a hybrid gateway that handles both production and sandbox token traffic."
+            showAsTokenEndpointUrl: true
+            serviceName: "apim-gw-wso2am-gateway-service"
+            servicePort: 9443
+            wsHostname: "websocket.local"
+            httpHostname: "default.gw.local:9095"
+            websubHostname: "websub.local"
+
       syncRuntimeArtifacts:
         gateway:
           # -- Gateway label used to filter out artifact retrieval
-          labels: ["Default"]
+          labels: ["Default", "Default_apk"]
 
       iskm:
         # If Identity Server is used as the Resident KM
