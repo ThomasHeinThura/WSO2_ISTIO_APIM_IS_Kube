@@ -1,0 +1,15 @@
+dependencies:
+- name: gateway-helm
+  repository: oci://docker.io/envoyproxy
+  version: 1.5.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.4.14
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 20.10.0
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.17.1
+digest: sha256:fdebe19788bb1c15f1007ca420e9e04c86de8a1eab85883c8d71650c69f49536
+generated: "2025-09-10T12:03:25.430715+05:30"

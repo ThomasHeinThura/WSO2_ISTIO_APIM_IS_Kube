@@ -165,3 +165,7 @@ kubectl get pods -n wso2
 kubectl get svc -n wso2
 kubectl get pods -n istio-system
 ```
+
+
+
+<pre class="prism-code language-bash"><div class="token-line"><span class="token plain">kubectl apply </span><span class="token parameter variable">-f</span><span class="token plain"> https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.yaml</span></div></pre>
