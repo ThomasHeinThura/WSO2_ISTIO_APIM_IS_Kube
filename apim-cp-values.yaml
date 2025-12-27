@@ -163,14 +163,14 @@ kubernetes:
     websocket:
       enabled: true
       # -- Ingress hostname for Websocket
-      hostname: "websocket.wso2.com"
+      hostname: "websocket.local"
       # -- Ingress annotations for Websocket
       annotations:
         #todo: add websocket specific annotations
     websub:
       enabled: true
       # -- Ingress hostname for Websub
-      hostname: "websub.wso2.com"
+      hostname: "websub.local"
       # -- Ingress annotations for Websub
       annotations:
   securityContext:
@@ -226,7 +226,7 @@ wso2:
         # -- APIM AM_DB configurations.
         apim_db:
           # -- APIM AM_DB URL
-          url: "jdbc:mysql://wso2sql.orb.local:3306/WSO2AM_DB?useSSL=false&allowPublicKeyRetrieval=true"
+          url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2AM_DB?useSSL=false&amp;allowPublicKeyRetrieval=true"
           # -- APIM AM_DB username
           username: "wso2carbon"
           # -- APIM AM_DB password
@@ -237,13 +237,13 @@ wso2:
             testOnBorrow: true
             testWhileIdle: true
             validationInterval: 30000
-            maxActive: 100
+            maxActive: 50
             maxWait: 60000
             minIdle: 5
         # -- APIM SharedDB configurations.
         shared_db:
           # -- APIM SharedDB URL
-          url: "jdbc:mysql://wso2sql.orb.local:3306/WSO2AM_SHARED_DB?useSSL=false&allowPublicKeyRetrieval=true"
+          url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2AM_SHARED_DB?useSSL=false&amp;allowPublicKeyRetrieval=true"
           # -- APIM SharedDB username
           username: "wso2carbon"
           # -- APIM SharedDB password
@@ -254,7 +254,7 @@ wso2:
             testOnBorrow: true
             testWhileIdle: true
             validationInterval: 30000
-            maxActive: 100
+            maxActive: 50
             maxWait: 60000
             minIdle: 5
 
@@ -594,7 +594,7 @@ wso2:
         # enable_email_domain = true
 
   deployment:
-    highAvailability: false
+    highAvailability: true
     # Container image configurations
     image:
       # -- Container registry credentials.
@@ -605,10 +605,10 @@ wso2:
         password: ""
       # -- Registry containing the image
       registry: "docker.io"
-      # -- Repository name consisting the image
-      repository: "bimdevops/wso2-apim-cp.4.6.0-mysql"
-      # -- Docker image digest
-      digest: ""
+      # -- Repository name consisting the image (do not include the tag)
+      repository: "bimdevops/wso2-apim-cp-mysql"
+      # -- Docker image digest (sha256)
+      digest: "sha256:88d06277069417e1602f28fb329ae3f73c5d319ab1296b50d88dd881d8d30c42"
       # -- Refer to the Kubernetes documentation on updating images (https://kubernetes.io/docs/concepts/containers/images/#updating-images)
       imagePullPolicy: IfNotPresent
 

@@ -12,67 +12,14 @@
 aws:
   # -- If AWS is used as the cloud provider
   enabled: false
-  # -- AWS region
-  region: ""
-  secretsManager:
-    # -- AWS Secrets Manager secret provider class name
-    secretProviderClass: "wso2am-gw-secret-provider-class"
-    secretIdentifiers:
-      # -- Internal keystore password identifier in secrets manager
-      internalKeystorePassword:
-        # -- AWS Secrets Manager secret name
-        secretName: ""
-        # -- AWS Secrets Manager secret key
-        secretKey: ""
-  serviceAccountName: ""
 azure:
   # -- If Azure is used as the cloud provider
-  enabled: true
-  keyVault:
-    # -- Azure Key vault used for credential management
-    name: ""
-    # -- Azure Key vault secret provider class name
-    secretProviderClass: "wso2am-gw-secret-provider-class"
-    secretIdentifiers:
-      # -- Internal keystore password identifier in keyvault
-      internalKeystorePassword: ""
-      # -- Internal keystore key password identifier in keyvault
-      internalKeystoreKeyPassword: ""
-    activeDirectory:
-      # -- Service Principal created for transacting with the target Azure Key Vault
-      # For advanced details refer to official documentation (https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/master/docs/service-principal-mode.md)
-      servicePrincipal:
-        # -- Application ID of the service principal used in secret-store-csi
-        appId: ""
-        # -- Client secret name of the service principal used in secret-store-csi
-        clientSecretName: ""
-        # -- Credentials secret name of the service principal used as nodePublisherRef
-        credentialsSecretName: ""
-      # -- Azure Active Directory tenant ID of the target Key Vault
-      tenantId: ""
-    resourceManager:
-      # -- Subscription ID of the target Azure Key Vault
-      subscriptionId: "APIM-rnd-001"
-      # -- Name of the Azure Resource Group to which the target Azure Key Vault belongs
-      resourceGroup: "rg-private-apim-kavindar"
+  enabled: false
 
 # Google Cloud Platform (GCP) integration status
 gcp:
   # -- If GCP is used as the cloud provider
   enabled: false
-  # -- Secrets Manager configuration parameters
-  secretsManager:
-    # -- Project ID
-    projectId: ""
-    # -- Secret provider class
-    secretProviderClass: ""
-    secret:
-      # -- Name of the secret
-      secretName: ""
-      # -- Version of the secret
-      secretVersion: ""
-  # -- Service Account with access to read secrets
-  serviceAccountName: ""
 
 kubernetes:
   # -- Ingress class to be used for the ingress resource
@@ -97,13 +44,13 @@ kubernetes:
         nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
     websocket:
       # -- Ingress hostname for Websocket
-      hostname: "websocket.wso2.com"
+      hostname: "websocket.local"
       # -- Ingress annotations for Websocket
       annotations:
         #todo: add websocket specific annotations
     websub:
       # -- Ingress hostname for Websub
-      hostname: "websub.wso2.com"
+      hostname: "websub.local"
       # -- Ingress annotations for Websub
       annotations:
 
@@ -167,7 +114,7 @@ wso2:
         # -- APIM SharedDB configurations. This is required for gateway only in a multi-tenancy scenario
         shared_db:
           # -- APIM SharedDB URL
-          url: "jdbc:mysql://wso2sql.orb.local:3306/WSO2AM_SHARED_DB?useSSL=false&allowPublicKeyRetrieval=true"
+          url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2AM_SHARED_DB?useSSL=false&amp;allowPublicKeyRetrieval=true"
           # -- APIM SharedDB username
           username: "wso2carbon"
           # -- APIM SharedDB password
@@ -398,10 +345,10 @@ wso2:
         password: ""
       # -- Container registry hostname
       registry: "docker.io"
-      # -- Azure ACR repository name consisting the image
-      repository: "bimdevops/wso2-apim-gw.4.6.0-mysql"
-      # -- Docker image digest
-      digest: ""
+      # -- Repository name consisting the image (do not include the tag)
+      repository: "bimdevops/wso2-apim-gw-mysql"
+      # -- Docker image digest (sha256)
+      digest: "sha256:4a49a0d8d6c112a121419597eb70dbab1eb6c0b64e4c0560688f2208ac1ecfd9"
       # -- Refer to the Kubernetes documentation on updating images (https://kubernetes.io/docs/concepts/containers/images/#updating-images)
       imagePullPolicy: IfNotPresent
 

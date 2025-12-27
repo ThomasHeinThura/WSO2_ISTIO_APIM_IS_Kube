@@ -1,9 +1,10 @@
 # Builds an APIM 4.6.0 image with the MySQL JDBC driver included.
-# Default BASE_IMAGE points to the public Docker Hub image; override if you use docker.wso2.com images.
+# Default BASE_IMAGE points to the public Docker Hub image.
 
 ARG BASE_IMAGE=wso2/wso2am:4.6.0
 FROM ${BASE_IMAGE}
 
+ARG USER=wso2carbon
 ARG USER_HOME=/home/${USER}
 ARG WSO2_SERVER_NAME=wso2am
 ARG WSO2_SERVER_VERSION=4.6.0

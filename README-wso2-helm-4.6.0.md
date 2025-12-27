@@ -45,8 +45,8 @@ If the JKS files are not present, the script falls back to extracting them from 
 
 ## 4) Build images (MySQL JDBC included) and load into Kind
 This builds:
-- `bimdevops/wso2-apim-cp.4.6.0-mysql:latest`
-- `bimdevops/wso2-apim-gw.4.6.0-mysql:latest`
+- `bimdevops/wso2-apim-cp-mysql:4.6.0`
+- `bimdevops/wso2-apim-gw-mysql:4.6.0`
 
 ```bash
 ./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
@@ -60,7 +60,7 @@ LOAD_TO_KIND=true ./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
 
 Notes:
 - CP image defaults to base `wso2/wso2am:4.6.0`.
-- Universal GW base defaults to `docker.wso2.com/wso2am-universal-gw:4.6.0.0`.
+- Universal GW base defaults to `wso2/wso2am-universal-gw:4.6.0`.
   - If you use a different registry/image, override: `GW_BASE_IMAGE=... ./.../build-apim-images.sh`.
 
 ## 5) Install APIM (Control Plane / All-in-One) + Universal GW

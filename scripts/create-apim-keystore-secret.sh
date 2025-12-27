@@ -50,9 +50,9 @@ fi
 
 kubectl get ns "${NAMESPACE}" >/dev/null 2>&1 || kubectl create ns "${NAMESPACE}"
 
+kubectl delete secret "${SECRET_NAME}" -n "${NAMESPACE}" --ignore-not-found
 kubectl -n "${NAMESPACE}" create secret generic "${SECRET_NAME}" \
   --from-file=wso2carbon.jks="${wso2carbon_jks}" \
-  --from-file=client-truststore.jks="${truststore_jks}" \
-  --dry-run=client -o yaml | kubectl apply -f -
+  --from-file=client-truststore.jks="${truststore_jks}"
 
 echo "Created/updated secret ${SECRET_NAME} in namespace ${NAMESPACE}"

@@ -10,11 +10,11 @@ PUSH_IMAGES=${PUSH_IMAGES:-true}
 # When true, loads images into the Kind nodes.
 LOAD_TO_KIND=${LOAD_TO_KIND:-false}
 
-CP_IMAGE=${CP_IMAGE:-bimdevops/wso2-apim-cp.4.6.0-mysql:latest}
-GW_IMAGE=${GW_IMAGE:-bimdevops/wso2-apim-gw.4.6.0-mysql:latest}
+CP_IMAGE=${CP_IMAGE:-bimdevops/wso2-apim-cp-mysql:4.6.0}
+GW_IMAGE=${GW_IMAGE:-bimdevops/wso2-apim-gw-mysql:4.6.0}
 
 CP_BASE_IMAGE=${CP_BASE_IMAGE:-wso2/wso2am:4.6.0}
-GW_BASE_IMAGE=${GW_BASE_IMAGE:-docker.wso2.com/wso2am-universal-gw:4.6.0.0}
+GW_BASE_IMAGE=${GW_BASE_IMAGE:-wso2/wso2am-universal-gw:4.6.0}
 
 echo "Building APIM CP image: ${CP_IMAGE}"
 docker build \
