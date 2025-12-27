@@ -1,12 +1,22 @@
 # POC values for WSO2 IS deployment
-# Minimal overrides for Kind cluster POC with MySQL
+# Aligned to the Helm chart value structure in `kubernetes-is/values.yaml`.
 
 wso2:
-  deployment:
-    image:
-      tag: "7.0.0"
+  subscription:
+    username: ""
+    password: ""
 
 deployment:
+  image:
+    registry: "docker.wso2.com"
+    repository: "wso2is"
+    digest: ""
+    tag: "7.0.0"
+    pullPolicy: IfNotPresent
+    imagePullSecret: ""
+
+  replicas: 1
+
   resources:
     requests:
       memory: "1Gi"
@@ -14,15 +24,17 @@ deployment:
     limits:
       memory: "2Gi"
       cpu: "2000m"
-
-  service:
-    type: "ClusterIP"
+    jvm:
+      memOpts: "-Xms1024m -Xmx1024m"
 
   persistence:
     enabled: false
 
   ingress:
     hostName: "is.local"
+    ingressClassName: "nginx"
+    tlsSecretsName: "is-tls"
+    enableNginxRateLimit: false
 
 deploymentToml:
   database:
@@ -33,6 +45,12 @@ deploymentToml:
       password: "wso2carbon"
       driver: "com.mysql.cj.jdbc.Driver"
     shared:
+      type: "mysql"
+      url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2IS_SHARED_DB?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
+      username: "wso2carbon"
+      password: "wso2carbon"
+      driver: "com.mysql.cj.jdbc.Driver"
+    user:
       type: "mysql"
       url: "jdbc:mysql://mysql.wso2.svc.cluster.local:3306/WSO2IS_SHARED_DB?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
       username: "wso2carbon"

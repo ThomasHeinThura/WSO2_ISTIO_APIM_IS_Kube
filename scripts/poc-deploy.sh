@@ -7,17 +7,24 @@ set -e
 
 CLUSTER_NAME="wso2-poc"
 ISTIO_PROFILE="demo"
+KIND_CONFIG_FILE="Kubernetes_cluster/kind.yaml"
 
 echo "Starting POC deployment..."
 
 # 1. Create Kind cluster
 echo "Creating Kind cluster..."
-kind create cluster --name $CLUSTER_NAME --image kindest/node:v1.27.6
+kind create cluster --name $CLUSTER_NAME --image kindest/node:v1.35.0 --config "$KIND_CONFIG_FILE"
 kubectl cluster-info --context kind-$CLUSTER_NAME
 
 # 2. Install Istio
 echo "Installing Istio..."
-istioctl install --set profile=$ISTIO_PROFILE -y
+istioctl install --set profile=$ISTIO_PROFILE \
+    --set components.ingressGateways[0].k8s.service.type=NodePort \
+    --set values.gateways.istio-ingressgateway.type=NodePort \
+    -y
+
+# Ensure fixed NodePorts so Kind hostPort mappings work
+kubectl patch svc -n istio-system istio-ingressgateway --type merge -p '{"spec":{"type":"NodePort","ports":[{"name":"status-port","port":15021,"targetPort":15021,"nodePort":30021},{"name":"http2","port":80,"targetPort":8080,"nodePort":30080},{"name":"https","port":443,"targetPort":8443,"nodePort":30443}]}}'
 kubectl label namespace default istio-injection=enabled --overwrite
 
 # 3. Create namespaces
@@ -62,4 +69,4 @@ echo "Add to /etc/hosts:"
 echo "127.0.0.1 apim.local is.local"
 echo ""
 echo "Port forward Istio ingress if needed:"
-echo "kubectl port-forward -n istio-system svc/istio-ingressgateway 8080:80"
+echo "(not required when using the Kind config port mappings)"

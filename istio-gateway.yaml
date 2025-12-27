@@ -1,4 +1,5 @@
 # Istio Gateway for POC
+# Use TLS PASSTHROUGH so WSO2 services terminate TLS themselves.
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
@@ -9,48 +10,55 @@ spec:
     istio: ingressgateway
   servers:
     - port:
-        number: 80
-        name: http
-        protocol: HTTP
+        number: 443
+        name: tls
+        protocol: TLS
+      tls:
+        mode: PASSTHROUGH
       hosts:
         - "apim.local"
         - "is.local"
 ---
-# VirtualService for APIM
+# VirtualService for APIM (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: apim-vs
-  namespace: apim
+  namespace: wso2
 spec:
   hosts:
     - "apim.local"
   gateways:
     - istio-system/wso2-gateway
-  http:
+  tls:
     - match:
-        - uri:
-            prefix: "/"
+        - port: 443
+          sniHosts:
+            - "apim.local"
       route:
         - destination:
-            host: wso2am-service # Adjust based on actual service name
+            host: wso2-apim-am-service
             port:
               number: 9443
 ---
-# VirtualService for IS
+# VirtualService for IS (SNI based routing)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: is-vs
-  namespace: is
+  namespace: wso2
 spec:
   hosts:
     - "is.local"
   gateways:
     - istio-system/wso2-gateway
-  http:
-    - route:
+  tls:
+    - match:
+        - port: 443
+          sniHosts:
+            - "is.local"
+      route:
         - destination:
-            host: wso2is-service # Adjust based on actual service name
+            host: wso2-is
             port:
               number: 9443

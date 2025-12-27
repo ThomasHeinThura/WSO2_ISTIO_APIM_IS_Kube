@@ -1,0 +1,26 @@
+# three node (two workers) cluster config
+# NOTE: For Kind + Istio, exposing services via host ports usually requires
+# mapping host 80/443 to the *NodePort* of `istio-ingressgateway`.
+# This config maps:
+#   host 80  -> node containerPort 30080 (NodePort)
+#   host 443 -> node containerPort 30443 (NodePort)
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: wso2-cluster
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 30443
+        hostPort: 443
+        protocol: TCP
+  - role: worker
+  - role: worker

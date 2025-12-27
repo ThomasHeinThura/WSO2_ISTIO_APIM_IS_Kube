@@ -8,15 +8,14 @@ The deployment uses a **Kind** cluster with **Istio** for traffic management and
 
 | Component | Namespace | Role | Service Name |
 |-----------|-----------|------|--------------|
-| **WSO2 IS** | `wso2` | Key Manager (Auth) | `wso2-is-service` |
-| **APIM CP** | `wso2` | Control Plane | `wso2-apim-cp-service` |
-| **APIM GW** | `wso2` | Classic Gateway | `wso2-apim-gw-service` |
+| **WSO2 IS** | `wso2` | Key Manager (Auth) | `wso2-is` |
+| **APIM** | `wso2` | All-in-One | `wso2-apim-am-service` |
 | **APK CP** | `wso2-apk` | APK Control Plane | `apk-cp-service` |
 | **APK Router**| `wso2-apk` | Envoy Gateway | `apk-router-service` |
 
 **Traffic Flow:**
 - **Ingress**: `istio-ingressgateway` handles external traffic for APIM and IS.
-- **Internal**: APIM communicates with IS via K8s Service DNS (`wso2-is-service.wso2.svc`).
+- **Internal**: APIM communicates with IS via K8s Service DNS (`wso2-is.wso2.svc`).
 - **APK**: Uses its own LoadBalancer/NodePort service (Envoy).
 
 ## 📂 Directory Structure
@@ -40,7 +39,7 @@ The deployment uses a **Kind** cluster with **Istio** for traffic management and
 
 ```bash
 # Create Cluster
-kind create cluster --name wso2-poc
+kind create cluster --name wso2-poc --config WSO2_ISTIO_APIM_IS_Kube/Kubernetes_cluster/kind.yaml
 
 # Install Istio
 istioctl install --set profile=demo -y
@@ -108,12 +107,15 @@ Add the following to your `/etc/hosts`:
 ## 🔧 Configuration Details
 
 ### IS as Key Manager
-APIM is configured to use WSO2 IS as the Key Manager. This is defined in `values-poc-apim.yaml`:
+APIM is configured to use WSO2 IS as the resident Key Manager. This is defined in `values-poc-apim.yaml`:
 ```yaml
-apim:
-  keyManager:
-    type: "WSO2-IS"
-    url: "https://wso2-is-service.wso2.svc.cluster.local:9443"
+wso2:
+  apim:
+    configurations:
+      iskm:
+        enabled: true
+        serviceName: "wso2-is"
+        revokeURL: "https://wso2-is:9443/oauth2/revoke"
 ```
 
 ### Database

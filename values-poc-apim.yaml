@@ -1,39 +1,15 @@
 # POC values for WSO2 APIM all-in-one deployment
-# Minimal overrides for Kind cluster POC with MySQL
-# Based on APIM 4.5.0
+# Aligned to the Helm chart value structure in `helm-apim/all-in-one/values.yaml`.
 
 wso2:
   apim:
     version: "4.5.0"
-
     configurations:
       gatewayType: "Regular,APK"
 
-      gateway:
-        environments:
-          - name: "Default"
-            type: "hybrid"
-            gatewayType: "APK"
-            displayInApiConsole: true
-            description: "APK Gateway"
-            showAsTokenEndpointUrl: true
-            serviceName: "wso2am-gateway-service"
-            servicePort: 9443
-            wsHostname: "websocket.wso2.com"
-            httpHostname: "default.gw.wso2.com"
-            websubHostname: "websub.wso2.com"
-          - name: "Default_synapse"
-            type: "hybrid"
-            gatewayType: "Regular"
-            provider: "wso2"
-            displayInApiConsole: true
-            description: "Classic Gateway"
-            showAsTokenEndpointUrl: true
-            serviceName: "wso2am-gateway-service"
-            servicePort: 9443
-            wsHostname: "websocket.wso2.com"
-            httpHostname: "gw.wso2.com"
-            websubHostname: "websub.wso2.com"
+      # Super admin credentials (POC)
+      adminUsername: "admin"
+      adminPassword: "admin"
 
       databases:
         type: "mysql"
@@ -48,18 +24,48 @@ wso2:
           username: "wso2carbon"
           password: "wso2carbon"
 
-    keyManager:
-      type: "WSO2-IS"
-      url: "https://wso2-is-service.wso2.svc.cluster.local:9443"
+      gateway:
+        environments:
+          - name: "Default"
+            type: "hybrid"
+            provider: "wso2"
+            gatewayType: "APK"
+            displayInApiConsole: true
+            description: "APK Gateway"
+            showAsTokenEndpointUrl: true
+            serviceName: "wso2am-gateway-service"
+            servicePort: 9443
+            wsHostname: "websocket.wso2.com"
+            httpHostname: "default.gw.wso2.com:9095"
+            websubHostname: "websub.wso2.com"
 
-  image:
-    registry: "docker.wso2.com"
-    repository: "wso2am"
-    tag: "4.5.0"
-    pullPolicy: "IfNotPresent"
+          - name: "Default_synapse"
+            type: "hybrid"
+            provider: "wso2"
+            gatewayType: "Regular"
+            displayInApiConsole: true
+            description: "Classic Gateway"
+            showAsTokenEndpointUrl: true
+            serviceName: "wso2am-gateway-service"
+            servicePort: 9443
+            wsHostname: "websocket.wso2.com"
+            httpHostname: "gw.wso2.com"
+            websubHostname: "websub.wso2.com"
+
+      # Use WSO2 IS as the resident key manager (Pattern: IS as KM)
+      iskm:
+        enabled: true
+        # Helm release name `wso2-is` creates a service named `wso2-is` in namespace `wso2`.
+        serviceName: "wso2-is"
+        revokeURL: "https://wso2-is:9443/oauth2/revoke"
 
   deployment:
     replicas: 1
+    image:
+      registry: "docker.wso2.com"
+      repository: "wso2am"
+      digest: ""
+      imagePullPolicy: IfNotPresent
     resources:
       requests:
         memory: "1Gi"
@@ -67,7 +73,10 @@ wso2:
       limits:
         memory: "2Gi"
         cpu: "2000m"
-    service:
-      type: "ClusterIP"
+      jvm:
+        memory:
+          xms: "1024m"
+          xmx: "1024m"
     persistence:
-      enabled: false
+      solrIndexing:
+        enabled: false
