@@ -220,24 +220,10 @@ wso2:
             httpHostname: "gw.local"
             websubHostname: "websub.local"
 
-          - name: "Default_apk"
-            type: "hybrid"
-            gatewayType: "APK"
-            provider: "wso2"
-            visibility:
-            displayInApiConsole: true
-            description: "This is a hybrid gateway that handles both production and sandbox token traffic."
-            showAsTokenEndpointUrl: true
-            serviceName: "apim-gw-wso2am-gateway-service"
-            servicePort: 9443
-            wsHostname: "websocket.local"
-            httpHostname: "api.local:9095"
-            websubHostname: "websub.local"
-
       syncRuntimeArtifacts:
         gateway:
           # -- Gateway label used to filter out artifact retrieval
-          labels: ["Default", "Default_apk"]
+          labels: ["Default"]
 
       iskm:
         # If Identity Server is used as the Resident KM
