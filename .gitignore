@@ -1,0 +1,59 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Large / proprietary artifacts (do not publish)
+Reference/*.zip
+Reference/wso2am-*/
+Reference/*.jks
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Terraform / Cloud (if ever used)
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Helm / Kubernetes tooling
+*.tgz
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Node (if ever used)
+node_modules/
+
+# Python (if ever used)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated certificates / private keys (avoid committing secrets)
+certificates/
+scripts/certificates/
+
+*.key
+*.pem
+*.p12
+*.jks
+*.srl
+*.csr
+*.crt
+
+# Local override values
+*values.local.yaml

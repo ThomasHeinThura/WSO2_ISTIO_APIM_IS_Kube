@@ -4,7 +4,7 @@ This is the Helm-focused guide for installing APIM 4.6.0 Control Plane + Univers
 
 For the end-to-end flow (Kind → istioctl → secrets → DB → Helm → Istio Gateway), use:
 
-- `WSO2_ISTIO_APIM_IS_Kube/README.md`
+- `README.md`
 
 ## Versions
 
@@ -14,7 +14,8 @@ For the end-to-end flow (Kind → istioctl → secrets → DB → Helm → Istio
 
 ## Assumptions
 
-- Kind cluster already created with `WSO2_ISTIO_APIM_IS_Kube/Kubernetes_cluster/kind.yaml`.
+- Kind cluster already created with `Kubernetes_cluster/kind.yaml`.
+- MetalLB installed (if you use Kind and need LoadBalancer IPs).
 - Istio installed via `istioctl install` (includes ingress gateway).
 
 DB options supported:
@@ -38,33 +39,44 @@ helm repo update
 Deploy MySQL:
 
 ```bash
-./WSO2_ISTIO_APIM_IS_Kube/scripts/deploy-mysql.sh
+./scripts/deploy-mysql.sh
 ```
 
 ### Option B) External DB (your MySQL)
 
-Initialize schemas using the SQL in `WSO2_ISTIO_APIM_IS_Kube/mysql-scripts`:
+Initialize schemas using the SQL in `mysql-scripts/`:
 
 ```bash
 DB_PASSWORD='<mysql-root-password>' \
-  ./WSO2_ISTIO_APIM_IS_Kube/scripts/init-external-mysql.sh
+  ./scripts/init-external-mysql.sh
 ```
 
 (When you install IS later)
 
 ```bash
 DB_PASSWORD='1qaz!QAZ' INCLUDE_IS=true \
-  ./WSO2_ISTIO_APIM_IS_Kube/scripts/init-external-mysql.sh
+  ./scripts/init-external-mysql.sh
 ```
 
 ## 3) Create APIM keystore secret
 
-This uses the JKS files already present in `WSO2_ISTIO_APIM_IS_Kube/Reference/` (`wso2carbon.jks`, `client-truststore.jks`) and creates `apim-keystore-secret` in `wso2`.
+This uses the JKS files already present in `Reference/` (`wso2carbon.jks`, `client-truststore.jks`) and creates `apim-keystore-secret` in `wso2`.
 
-If the JKS files are not present, the script falls back to extracting them from `WSO2_ISTIO_APIM_IS_Kube/Reference/wso2am-4.6.0.zip`.
+If the JKS files are not present, the script falls back to extracting them from `Reference/wso2am-4.6.0.zip`.
 
 ```bash
-./WSO2_ISTIO_APIM_IS_Kube/scripts/create-apim-keystore-secret.sh
+./scripts/create-apim-keystore-secret.sh
+```
+
+If you are using Istio TLS termination with the provided [istio-gateway.yaml](istio-gateway.yaml), also create the TLS secret referenced by `credentialName: wso2-ingress-cert`:
+
+```bash
+./scripts/generate-local-certificates.sh
+
+kubectl -n istio-system create secret tls wso2-ingress-cert \
+  --cert=certificates/server.crt \
+  --key=certificates/server.key \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ## 4) Build images (MySQL JDBC included) and load into Kind
@@ -75,14 +87,14 @@ This builds:
 - `bimdevops/wso2-apim-gw-mysql:4.6.0`
 
 ```bash
-./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
+./scripts/build-apim-images.sh
 ```
 
 By default this script **pushes to Docker Hub**. Run `docker login` first.
 If you want to also load images into Kind nodes (offline/no-pull), run:
 
 ```bash
-LOAD_TO_KIND=true ./WSO2_ISTIO_APIM_IS_Kube/scripts/build-apim-images.sh
+LOAD_TO_KIND=true ./scripts/build-apim-images.sh
 ```
 
 Notes:
@@ -101,17 +113,17 @@ kubectl create ns wso2 --dry-run=client -o yaml | kubectl apply -f -
 helm install apim wso2/wso2am-all-in-one \
   --version 4.6.0-1 \
   -n wso2 \
-  -f WSO2_ISTIO_APIM_IS_Kube/apim-cp-values.yaml
+  -f apim-cp-values.yaml
 
 helm install apim-gw wso2/wso2am-universal-gw \
   --version 4.6.0-1 \
   -n wso2 \
-  -f WSO2_ISTIO_APIM_IS_Kube/apim-gw-values.yaml
+  -f apim-gw-values.yaml
 
 ## 6) Istio external access
 Apply Istio routing:
 ```bash
-kubectl apply -f WSO2_ISTIO_APIM_IS_Kube/istio-gateway.yaml
+kubectl apply -f istio-gateway.yaml
 ```
 
 Hostnames used by this repo:
@@ -133,10 +145,26 @@ kubectl get pods -n wso2
 kubectl get svc -n wso2
 ```
 
+## Post-install: Update JWKS Endpoint (Resident Key Manager)
+
+By default, the JWKS endpoint in the Resident Key Manager can point to an **external-facing** hostname. In a local cluster this is sometimes not routable from other pods.
+
+Update it to the API Manager **internal service DNS name**:
+
+1) Log into the Admin Portal (default hostname for this repo):
+  - `https://apim.local/admin/`
+2) Navigate to **Key Managers** → **Resident Key Manager**.
+3) In **Certificates**, change **JWKS URL** to:
+  - `https://apim-wso2am-all-in-one-am-service:9443/oauth2/jwks`
+
+Notes:
+- The service name above matches the Helm release name `apim` used in this guide.
+- If you installed with a different release name, adjust the service name accordingly.
+
 ## Values files
 
-- CP: [WSO2_ISTIO_APIM_IS_Kube/apim-cp-values.yaml](WSO2_ISTIO_APIM_IS_Kube/apim-cp-values.yaml)
-- GW: [WSO2_ISTIO_APIM_IS_Kube/apim-gw-values.yaml](WSO2_ISTIO_APIM_IS_Kube/apim-gw-values.yaml)
+- CP: [apim-cp-values.yaml](apim-cp-values.yaml)
+- GW: [apim-gw-values.yaml](apim-gw-values.yaml)
 
 ## Next steps (later)
 
