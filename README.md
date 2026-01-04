@@ -35,6 +35,20 @@ kind create cluster --name wso2-cluster --config Kubernetes_cluster/kind.yaml
 istioctl install -y
 ```
 
+### 2.1) Create TLS secret for Istio Gateway
+
+This repo terminates TLS at the Istio Ingress Gateway via [istio-gateway.yaml](istio-gateway.yaml), which expects a secret named `wso2-ingress-cert` in the `istio-system` namespace.
+
+```bash
+# Generate ./certificates/server.crt and ./certificates/server.key
+./scripts/generate-local-certificates.sh
+
+kubectl create secret tls wso2-ingress-cert -n istio-system \
+  --cert=certificates/server.crt \
+  --key=certificates/server.key \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
 ### 3) Create namespace and enable sidecar injection
 
 ```bash
@@ -93,6 +107,8 @@ helm upgrade --install apim-gw wso2/wso2am-universal-gw \
   -f apim-gw-values.yaml \
   --wait --timeout 15m
 ```
+
+Note: These values files disable/avoid Kubernetes NGINX Ingress usage for `apim.local`/`gw.local` to prevent conflicts. Access is via Istio Gateway + VirtualService.
 
 ## Option 2: Installation with external DB (external MySQL)
 
@@ -155,8 +171,10 @@ With MetalLB providing an external IP, update `/etc/hosts` to point to the LoadB
 # Get the external IP
 kubectl get svc -n istio-system istio-ingressgateway
 
-# Add to /etc/hosts (replace with actual EXTERNAL-IP)
-192.168.228.240 gw.local apim.local
+# Add to /etc/hosts (replace with the Istio EXTERNAL-IP)
+# IMPORTANT: use the Istio ingressgateway IP (not ingress-nginx). If you have ingress-nginx installed,
+# it may also get a different external IP and will present a "Kubernetes Ingress Controller Fake Certificate".
+192.168.228.240 gw.local apim.local websocket.local websub.local
 ```
 
 ### 3) URLs

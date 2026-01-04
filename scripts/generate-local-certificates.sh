@@ -58,6 +58,15 @@ keytool -importkeystore -deststorepass "$PASSWORD" -destkeypass "$PASSWORD" \
   -destkeystore wso2carbon.jks -srckeystore server.p12 -srcstoretype PKCS12 \
   -srcstorepass "$PASSWORD" -alias wso2carbon
 
+echo "Ensuring 'gateway_certificate_alias' key pair exists in wso2carbon.jks..."
+# Ignore error if alias doesn't exist
+keytool -delete -alias gateway_certificate_alias -keystore wso2carbon.jks -storepass "$PASSWORD" || true
+
+# Import the same keypair under the alias expected by APIM Gateway for Internal-Key JWT verification
+keytool -importkeystore -deststorepass "$PASSWORD" -destkeypass "$PASSWORD" \
+  -destkeystore wso2carbon.jks -srckeystore server.p12 -srcstoretype PKCS12 \
+  -srcstorepass "$PASSWORD" -srcalias wso2carbon -destalias gateway_certificate_alias
+
 # 2. Prepare client-truststore.jks
 if [ -f "$REFERENCE_DIR/client-truststore.jks" ]; then
     echo "Copying default client-truststore.jks from Reference..."
