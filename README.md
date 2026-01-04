@@ -54,7 +54,7 @@ kubectl label ns wso2 istio-injection=enabled --overwrite
 
 ### 5) Generate local certificates
 
-This creates `certificates/server.crt` + `certificates/server.key` for `*.local` and also produces the JKS files used by APIM.
+This creates `certificates/server.crt` + `certificates/server.key` for `*.local` (used by the Istio ingress TLS secret).
 
 ```bash
 ./scripts/generate-local-certificates.sh
@@ -62,16 +62,18 @@ This creates `certificates/server.crt` + `certificates/server.key` for `*.local`
 
 ### 6) Create secrets (APIM keystore + Istio ingress TLS)
 
-Create/update the APIM keystore secret (namespace `wso2`):
+#### 6.1) Create APIM keystore secret (namespace `wso2`)
+
+This creates `apim-keystore-secret` in `wso2`.
+
+It uses the JKS files already present in `Reference/` (`wso2carbon.jks`, `client-truststore.jks`).
+If those are not present, it falls back to extracting them from `Reference/wso2am-4.6.0.zip`.
 
 ```bash
-kubectl -n wso2 create secret generic apim-keystore-secret \
-  --from-file=wso2carbon.jks=certificates/wso2carbon.jks \
-  --from-file=client-truststore.jks=certificates/client-truststore.jks \
-  --dry-run=client -o yaml | kubectl apply -f -
+./scripts/create-apim-keystore-secret.sh
 ```
 
-Create/update the Istio Ingress Gateway TLS secret (namespace `istio-system`).
+#### 6.2) Create Istio Ingress Gateway TLS secret (namespace `istio-system`)
 
 This **must** exist because [istio-gateway.yaml](istio-gateway.yaml) uses `credentialName: wso2-ingress-cert`. If you skip this, `curl` to `https://gw.local` will typically fail with `Recv failure: Connection reset by peer`.
 
@@ -83,12 +85,6 @@ kubectl -n istio-system create secret tls wso2-ingress-cert \
 
 kubectl -n istio-system rollout restart deploy/istio-ingressgateway
 kubectl -n istio-system rollout status deploy/istio-ingressgateway
-```
-
-Alternative (not recommended if you want `*.local` certs): you can create the APIM keystore secret from the product-pack keystores via:
-
-```bash
-./scripts/create-apim-keystore-secret.sh
 ```
 
 ### 7) Build APIM images (MySQL JDBC included) and load into Kind
